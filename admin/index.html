@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AquaFlow Admin Portal — Management Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #087E8B;
+      --primary-dark: #075985;
+      --primary-light: #E0F2FE;
+      --bg: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --text: #0F172A;
+      --subtext: #64748B;
+      --border: #E2E8F0;
+      --success: #10B981;
+      --warning: #F59E0B;
+      --danger: #EF4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      background-color: #0C1E28;
+      color: #FFFFFF;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      padding: 24px 16px;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 20px;
+      font-weight: 800;
+      color: #38BDF8;
+      padding-bottom: 24px;
+      border-bottom: 1px solid #1E293B;
+      margin-bottom: 24px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      color: #94A3B8;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .nav-link:hover, .nav-link.active {
+      background-color: rgba(56, 189, 248, 0.12);
+      color: #38BDF8;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 16px;
+      border-top: 1px solid #1E293B;
+      font-size: 13px;
+      color: #64748B;
+    }
+
+    /* Main Content */
+    .main-content {
+      margin-left: 260px;
+      flex: 1;
+      padding: 28px 36px;
+    }
+
+    /* Top Header */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .page-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: #0C1E28;
+    }
+
+    .api-config {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #FFFFFF;
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .api-config input {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 13px;
+      width: 180px;
+    }
+
+    /* Metric Cards */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+      margin-bottom: 28px;
+    }
+
+    .metric-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .metric-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--subtext);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .metric-val {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    /* Tables & Card Sections */
+    .section-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 28px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0C1E28;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+
+    th {
+      text-align: left;
+      padding: 12px 14px;
+      background-color: #F8FAFC;
+      color: var(--subtext);
+      font-weight: 700;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    tr:hover td {
+      background-color: #F8FAFC;
+    }
+
+    /* Status Pills */
+    .status-pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .status-placed { background: #FEF3C7; color: #92400E; }
+    .status-processing { background: #E0E7FF; color: #3730A3; }
+    .status-dispatched { background: #E0F2FE; color: #0369A1; }
+    .status-delivered { background: #D1FAE5; color: #065F46; }
+    .status-approved { background: #D1FAE5; color: #065F46; }
+    .status-rejected { background: #FEE2E2; color: #991B1B; }
+    .status-pending { background: #FEF3C7; color: #92400E; }
+
+    /* Action Buttons */
+    .btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+    }
+
+    .btn-primary { background: var(--primary); color: #FFF; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-success { background: var(--success); color: #FFF; }
+    .btn-danger { background: var(--danger); color: #FFF; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+
+    select.status-select {
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 600;
+      background: #FFFFFF;
+      cursor: pointer;
+    }
+
+    /* Login Screen Gate */
+    #loginOverlay {
+      position: fixed;
+      inset: 0;
+      background: #0C1E28;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .login-box {
+      background: #FFFFFF;
+      padding: 36px 32px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .login-box h2 {
+      margin-bottom: 8px;
+      color: #0C1E28;
+    }
+
+    .login-box p {
+      color: #64748B;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .login-input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main-content { margin-left: 0; padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ADMIN AUTH GATE OVERLAY -->
+  <div id="loginOverlay">
+    <div class="login-box">
+      <div style="font-size: 40px; margin-bottom: 12px;">💧</div>
+      <h2>AquaFlow Admin</h2>
+      <p>Enter your administrator credentials to access orders, dealers, and service bookings.</p>
+      <input type="email" id="adminEmail" class="login-input" placeholder="admin@aquaflow.com" value="admin@aquaflow.com" />
+      <input type="password" id="adminPassword" class="login-input" placeholder="Enter admin password" />
+      <button class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 15px;" onclick="authenticateAdmin()">
+        Sign In as Administrator
+      </button>
+      <div style="margin-top: 14px; font-size: 12px; color: #94A3B8;">
+        Uses backend /api/admin/login — set ADMIN_EMAIL / ADMIN_PASSWORD in the server environment
+      </div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR NAVIGATION -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span>💧</span> AquaFlow Admin
+    </div>
+
+    <div class="nav-link active" onclick="switchTab('dashboard')">
+      📊 Dashboard Overview
+    </div>
+    <div class="nav-link" onclick="switchTab('orders')">
+      📦 Order Management
+    </div>
+    <div class="nav-link" onclick="switchTab('dealers')">
+      💼 Dealer Requests
+    </div>
+    <div class="nav-link" onclick="switchTab('service')">
+      🛠️ Service Requests
+    </div>
+
+    <div class="sidebar-footer">
+      <div>Logged in as: <strong id="adminUserLabel">Administrator</strong></div>
+      <button class="btn btn-danger" style="margin-top: 12px; width: 100%;" onclick="logoutAdmin()">
+        Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN DASHBOARD CONTENT -->
+  <main class="main-content">
+    <div class="top-bar">
+      <div>
+        <h1 class="page-title" id="pageTitle">Dashboard Overview</h1>
+        <p style="color: var(--subtext); font-size: 14px; margin-top: 4px;">
+          Cloud Firestore & Real-Time Management Panel
+        </p>
+      </div>
+
+      <div class="api-config">
+        <span>Backend Host:</span>
+        <input type="text" id="apiHost" value="http://localhost:5000" onchange="refreshAllData()" />
+        <button class="btn btn-primary" onclick="refreshAllData()">↻ Refresh</button>
+      </div>
+    </div>
+
+    <!-- METRICS OVERVIEW -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <span class="metric-label">Total Revenue</span>
+        <span class="metric-val" id="totalRevenue">₹0</span>
+        <span style="font-size: 12px; color: var(--success);">All processed orders</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Total Orders</span>
+        <span class="metric-val" id="totalOrders">0</span>
+        <span style="font-size: 12px; color: var(--primary);">Retail + Wholesale</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Pending Dealers</span>
+        <span class="metric-val" id="pendingDealers" style="color: var(--warning);">0</span>
+        <span style="font-size: 12px; color: var(--subtext);">Awaiting approval</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Open Service Calls</span>
+        <span class="metric-val" id="pendingService">0</span>
+        <span style="font-size: 12px; color: var(--subtext);">Pending maintenance</span>
+      </div>
+    </div>
+
+    <!-- TAB 1: DASHBOARD OVERVIEW -->
+    <div id="tabDashboard">
+      <div class="section-card">
+        <div class="section-header">
+          <h2 class="section-title">Quick Actions & Firestore Seeding</h2>
+          <button class="btn btn-primary" onclick="seedProducts()">🌱 Seed 51 Products to Firestore</button>
+        </div>
+        <p style="font-size: 14px; color: var(--subtext); margin-bottom: 12px;">
+          AquaFlow uses Cloud Firestore on Firebase Spark plan. If your Firestore collection is new, click "Seed Products" to populate all 51 purifiers, dispensers, pumps, and filters without duplicates.
+        </p>
+        <div id="seedStatusMsg" style="font-size: 13px; font-weight: 600; color: var(--primary);"></div>
+      </div>
+    </div>
+
+    <!-- TAB 2: ORDER MANAGEMENT -->
+    <div id="tabOrders" class="section-card">
+      <div class="section-header">
+        <h2 class="section-title">Customer & Dealer Orders</h2>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-outline" onclick="filterOrders('all')">All</button>
+          <button class="btn btn-outline" onclick="filterOrders('Dealer')">Dealer Wholesale</button>
+          <button class="btn btn-outline" onclick="filterOrders('Customer')">Customer Retail</button>
+        </div>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table id="ordersTable">
+          <thead>
+            <tr>
+              <th>Order #</th>
+              <th>Customer / Dealer</th>
+              <th>Phone</th>
+              <th>Type</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Payment</th>
+              <th>Status</th>
+              <th>Update Status</th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody">
+            <tr><td colspan="9" style="text-align: center; color: var(--subtext);">Loading orders...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 3: DEALER APPLICATIONS -->
+    <div id="tabDealers" class="section-card">
+      <div class="section-header">
+        <h2 class="section-title">Dealer Registration Applications</h2>
+        <span style="font-size: 13px; color: var(--subtext);">Approve dealers to enable 25% wholesale pricing.</span>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table id="dealersTable">
+          <thead>
+            <tr>
+              <th>Business Name</th>
+              <th>Contact Person</th>
+              <th>Phone</th>
+              <th>Email</th>
+              <th>GST Number</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="dealersBody">
+            <tr><td colspan="8" style="text-align: center; color: var(--subtext);">Loading dealer applications...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 4: SERVICE REQUESTS -->
+    <div id="tabService" class="section-card">
+      <div class="section-header">
+        <h2 class="section-title">Water Purifier Service Bookings</h2>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table id="serviceTable">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Phone</th>
+              <th>Address</th>
+              <th>Service Type</th>
+              <th>Preferred Date</th>
+              <th>Status</th>
+              <th>Update</th>
+            </tr>
+          </thead>
+          <tbody id="serviceBody">
+            <tr><td colspan="7" style="text-align: center; color: var(--subtext);">Loading service requests...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    let allOrders = [];
+    let allDealers = [];
+    let allBookings = [];
+
+    function getBaseUrl() {
+      return document.getElementById('apiHost').value.trim() || 'http://localhost:5000';
+    }
+
+    function getAuthHeaders() {
+      const token = localStorage.getItem('aqua_admin_token');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      return headers;
+    }
+
+    async function authenticateAdmin() {
+      const email = document.getElementById('adminEmail').value.trim();
+      const password = document.getElementById('adminPassword').value.trim();
+      const base = getBaseUrl();
+
+      if (!email || !password) {
+        alert('Please enter admin email and password.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${base}/api/admin/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.token) {
+          localStorage.setItem('aqua_admin_token', data.token);
+          localStorage.setItem('aqua_admin_auth', 'true');
+          document.getElementById('loginOverlay').style.display = 'none';
+          document.getElementById('adminUserLabel').innerText = data.user.email || 'Admin';
+          refreshAllData();
+        } else {
+          alert(data.error || 'Admin authentication failed');
+        }
+      } catch (err) {
+        // Do not unlock admin offline with hardcoded passwords — backend must verify
+        alert('Could not reach the backend. Start the server on port 5000, then try again.');
+      }
+    }
+
+    function logoutAdmin() {
+      localStorage.removeItem('aqua_admin_auth');
+      localStorage.removeItem('aqua_admin_token');
+      document.getElementById('loginOverlay').style.display = 'flex';
+    }
+
+    // Check saved session
+    if (localStorage.getItem('aqua_admin_auth') === 'true' && localStorage.getItem('aqua_admin_token')) {
+      document.getElementById('loginOverlay').style.display = 'none';
+      setTimeout(refreshAllData, 300);
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+
+      document.getElementById('tabDashboard').style.display = tab === 'dashboard' ? 'block' : 'none';
+      document.getElementById('tabOrders').style.display = (tab === 'dashboard' || tab === 'orders') ? 'block' : 'none';
+      document.getElementById('tabDealers').style.display = (tab === 'dashboard' || tab === 'dealers') ? 'block' : 'none';
+      document.getElementById('tabService').style.display = (tab === 'dashboard' || tab === 'service') ? 'block' : 'none';
+
+      const titles = {
+        dashboard: 'Dashboard Overview',
+        orders: 'Order Management',
+        dealers: 'Dealer Partner Applications',
+        service: 'Service Bookings',
+      };
+      document.getElementById('pageTitle').innerText = titles[tab] || 'Dashboard';
+    }
+
+    async function refreshAllData() {
+      const base = getBaseUrl();
+      fetchStats(base);
+      fetchOrders(base);
+      fetchDealers(base);
+      fetchServices(base);
+    }
+
+    async function fetchStats(base) {
+      try {
+        const res = await fetch(`${base}/api/stats`, { headers: getAuthHeaders() });
+        if (res.ok) {
+          const stats = await res.json();
+          document.getElementById('totalRevenue').innerText = `₹${Number(stats.totalRevenue || 0).toLocaleString('en-IN')}`;
+          document.getElementById('totalOrders').innerText = stats.totalOrders || 0;
+          document.getElementById('pendingDealers').innerText = stats.pendingDealers || 0;
+          document.getElementById('pendingService').innerText = stats.pendingService || 0;
+        }
+      } catch (e) {
+        console.warn('Could not fetch stats:', e);
+      }
+    }
+
+    async function fetchOrders(base) {
+      const tbody = document.getElementById('ordersBody');
+      try {
+        const res = await fetch(`${base}/api/orders`, { headers: getAuthHeaders() });
+        if (res.ok) {
+          allOrders = await res.json();
+          renderOrders(allOrders);
+        } else if (res.status === 401 || res.status === 403) {
+          tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--danger);">Admin login required to view all orders.</td></tr>`;
+        } else {
+          tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--danger);">Failed to load orders from backend.</td></tr>`;
+        }
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--danger);">Backend connection error (${base}). Make sure server is running.</td></tr>`;
+      }
+    }
+
+    function renderOrders(orders) {
+      const tbody = document.getElementById('ordersBody');
+      if (orders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--subtext);">No orders found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = orders.map(o => {
+        const statusClass = `status-${(o.status || 'placed').toLowerCase()}`;
+        const itemsSummary = (o.items || []).map(i => `${i.name} (x${i.quantity})`).join(', ');
+
+        return `
+          <tr>
+            <td><strong>${o.orderNumber || o.id}</strong></td>
+            <td>${o.customerName || 'N/A'}<br><small style="color:var(--subtext)">${o.address || ''}</small></td>
+            <td>${o.phone || 'N/A'}</td>
+            <td><span class="status-pill ${o.orderType === 'Dealer' ? 'status-delivered' : 'status-dispatched'}">${o.orderType || 'Customer'}</span></td>
+            <td style="max-width: 250px;">${itemsSummary || 'No items'}</td>
+            <td><strong>₹${Number(o.total || 0).toLocaleString('en-IN')}</strong></td>
+            <td>${o.paymentMethod || 'COD'}</td>
+            <td><span class="status-pill ${statusClass}">${o.status || 'Placed'}</span></td>
+            <td>
+              <select class="status-select" onchange="updateOrderStatus('${o.id}', this.value)">
+                <option value="" disabled selected>Change...</option>
+                <option value="Placed">Placed</option>
+                <option value="Processing">Processing</option>
+                <option value="Dispatched">Dispatched</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterOrders(type) {
+      if (type === 'all') {
+        renderOrders(allOrders);
+      } else {
+        renderOrders(allOrders.filter(o => o.orderType === type));
+      }
+    }
+
+    async function updateOrderStatus(orderId, newStatus) {
+      const base = getBaseUrl();
+      try {
+        const res = await fetch(`${base}/api/orders/${orderId}`, {
+          method: 'PATCH',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ status: newStatus }),
+        });
+        if (res.ok) {
+          alert(`Order ${orderId} status updated to ${newStatus}`);
+          fetchOrders(base);
+          fetchStats(base);
+        } else {
+          alert('Could not update order status.');
+        }
+      } catch (e) {
+        alert('Server connection error.');
+      }
+    }
+
+    async function fetchDealers(base) {
+      const tbody = document.getElementById('dealersBody');
+      try {
+        const res = await fetch(`${base}/api/dealers`, { headers: getAuthHeaders() });
+        if (res.ok) {
+          allDealers = await res.json();
+          renderDealers(allDealers);
+        } else {
+          tbody.innerHTML = `<tr><td colspan="8" style="text-align: center;">No dealer requests found.</td></tr>`;
+        }
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--subtext);">Unable to load dealer requests.</td></tr>`;
+      }
+    }
+
+    function renderDealers(dealers) {
+      const tbody = document.getElementById('dealersBody');
+      if (dealers.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--subtext);">No dealer registration requests.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = dealers.map(d => {
+        const statusClass = `status-${(d.status || 'pending').toLowerCase()}`;
+        return `
+          <tr>
+            <td><strong>${d.businessName || 'N/A'}</strong></td>
+            <td>${d.contactPerson || 'N/A'}</td>
+            <td>${d.phone || 'N/A'}</td>
+            <td>${d.email || 'N/A'}</td>
+            <td>${d.gstNumber || 'N/A'}</td>
+            <td>${d.createdAt ? new Date(d.createdAt).toLocaleDateString() : 'N/A'}</td>
+            <td><span class="status-pill ${statusClass}">${d.status || 'Pending'}</span></td>
+            <td>
+              ${d.status === 'Pending' ? `
+                <button class="btn btn-success" onclick="updateDealerStatus('${d.id}', 'Approved')">✓ Approve</button>
+                <button class="btn btn-danger" onclick="updateDealerStatus('${d.id}', 'Rejected')">✕ Reject</button>
+              ` : `
+                <button class="btn btn-outline" onclick="updateDealerStatus('${d.id}', '${d.status === 'Approved' ? 'Rejected' : 'Approved'}')">
+                  Toggle Status
+                </button>
+              `}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function updateDealerStatus(dealerId, status) {
+      const base = getBaseUrl();
+      try {
+        const res = await fetch(`${base}/api/dealers/${dealerId}`, {
+          method: 'PATCH',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ status }),
+        });
+        if (res.ok) {
+          alert(`Dealer application status set to: ${status}`);
+          fetchDealers(base);
+          fetchStats(base);
+        }
+      } catch (e) {
+        alert('Server communication error.');
+      }
+    }
+
+    async function fetchServices(base) {
+      const tbody = document.getElementById('serviceBody');
+      try {
+        const res = await fetch(`${base}/api/service-bookings`, { headers: getAuthHeaders() });
+        if (res.ok) {
+          allBookings = await res.json();
+          renderServices(allBookings);
+        } else if (res.status === 401 || res.status === 403) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--danger);">Admin login required to view service bookings.</td></tr>`;
+        } else {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align: center;">Unable to load service bookings.</td></tr>`;
+        }
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center;">Unable to load service bookings.</td></tr>`;
+      }
+    }
+
+    function renderServices(bookings) {
+      const tbody = document.getElementById('serviceBody');
+      if (bookings.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--subtext);">No service bookings found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = bookings.map(b => `
+        <tr>
+          <td><strong>${b.customerName}</strong></td>
+          <td>${b.phone}</td>
+          <td>${b.address}</td>
+          <td><strong>${b.serviceType}</strong></td>
+          <td>${b.preferredDate}</td>
+          <td><span class="status-pill status-${(b.status || 'pending').toLowerCase()}">${b.status || 'Pending'}</span></td>
+          <td>
+            <select class="status-select" onchange="updateServiceStatus('${b.id}', this.value)">
+              <option value="" disabled selected>Change...</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function updateServiceStatus(id, status) {
+      const base = getBaseUrl();
+      try {
+        const res = await fetch(`${base}/api/service-bookings/${id}`, {
+          method: 'PATCH',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ status }),
+        });
+        if (res.ok) {
+          alert(`Service booking updated to: ${status}`);
+          fetchServices(base);
+          fetchStats(base);
+        }
+      } catch (e) {
+        alert('Connection error.');
+      }
+    }
+
+    async function seedProducts() {
+      const base = getBaseUrl();
+      const statusEl = document.getElementById('seedStatusMsg');
+      statusEl.innerText = 'Seeding products to Firestore...';
+      try {
+        const res = await fetch(`${base}/api/seed-products`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+        });
+        const data = await res.json();
+        statusEl.innerText = `Result: Added ${data.added || 0}, Skipped ${data.skipped || 0} existing products. Total in catalog: 51.`;
+      } catch (e) {
+        statusEl.innerText = 'Seeding failed. Ensure backend server is running and connected to Firebase.';
+      }
+    }
+  </script>
+</body>
+</html>

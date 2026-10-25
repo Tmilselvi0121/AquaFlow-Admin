@@ -1,0 +1,13 @@
+{
+  "name": "aquaflow-admin",
+  "version": "1.0.0",
+  "description": "AquaFlow Water Purifier E-Commerce Admin Dashboard",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "build": "echo 'Static build ready for Vercel'"
+  },
+  "keywords": ["aquaflow", "admin", "dashboard", "ecommerce", "water-purifier"],
+  "author": "AquaFlow",
+  "license": "ISC"
+}

@@ -1,0 +1,187 @@
+{
+  "name": "AquaFlow — Daily Automated Instagram Publisher",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "node-schedule-trigger",
+      "name": "Daily 9:00 AM Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5000/api/products",
+        "options": {}
+      },
+      "id": "node-fetch-products",
+      "name": "Fetch Products from AquaFlow DB",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst products = items.map(i => i.json);\n\n// Pick the next product\nconst selectedProduct = products[0] || {\n  name: 'AquaFlow RO Water Purifier',\n  category: 'RO Purifier',\n  price: 8999,\n  imageUrl: 'https://i.ibb.co/xtFjzsLc/water-purifier-image.png'\n};\n\nreturn [{ json: { selectedProduct } }];"
+      },
+      "id": "node-select-product",
+      "name": "Select Next Unposted Product",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "={{ $env.GEMINI_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "contents",
+              "value": "={{ [ { parts: [ { text: 'Write a high-converting Instagram caption with 8 hashtags for water purifier product: ' + $json.selectedProduct.name + ', price: ₹' + $json.selectedProduct.price } ] } ] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-ai-caption",
+      "name": "Generate AI Caption (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [860, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $env.INSTAGRAM_ACCOUNT_ID }}/media",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "image_url",
+              "value": "={{ $('Select Next Unposted Product').first().json.selectedProduct.imageUrl || 'https://i.ibb.co/xtFjzsLc/water-purifier-image.png' }}"
+            },
+            {
+              "name": "caption",
+              "value": "={{ $json.candidates[0].content.parts[0].text }}"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $env.META_ACCESS_TOKEN }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-create-ig-container",
+      "name": "Meta Graph API (Create Container)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1080, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $env.INSTAGRAM_ACCOUNT_ID }}/media_publish",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "creation_id",
+              "value": "={{ $json.id }}"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $env.META_ACCESS_TOKEN }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-publish-ig",
+      "name": "Meta Graph API (Publish)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1300, 300]
+    }
+  ],
+  "connections": {
+    "Daily 9:00 AM Schedule": {
+      "main": [
+        [
+          {
+            "node": "Fetch Products from AquaFlow DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Products from AquaFlow DB": {
+      "main": [
+        [
+          {
+            "node": "Select Next Unposted Product",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Next Unposted Product": {
+      "main": [
+        [
+          {
+            "node": "Generate AI Caption (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate AI Caption (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Meta Graph API (Create Container)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meta Graph API (Create Container)": {
+      "main": [
+        [
+          {
+            "node": "Meta Graph API (Publish)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,9 @@
+[
+  {
+    "timestamp": "2026-10-25T13:58:04.199Z",
+    "status": "CONFIG_REQUIRED",
+    "error": "Meta credentials missing: META_ACCESS_TOKEN and INSTAGRAM_ACCOUNT_ID must be set in .env.",
+    "imageUrl": "https://i.ibb.co/xtFjzsLc/water-purifier-image.png",
+    "captionPreview": "💧 Pure Drinking Water for Every Home! 💧\n\nUpgrade your family's health with the genuine AquaFlow RO"
+  }
+]

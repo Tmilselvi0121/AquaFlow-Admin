@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for role and authentication verification
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (request.auth.token.role == 'admin' || 
+         request.auth.token.email in ['admin@aquaflow.com', 'admin@aquaflowwater.com']);
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // 1. Products Collection
+    // Public read for customer & dealer catalogs; Admin write only
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 2. Orders Collection
+    // Customers & Dealers can create orders.
+    // Users can read their own orders; Admins can read & update all order statuses.
+    match /orders/{orderId} {
+      allow create: if true; // Allows customer & dealer order checkout
+      allow read: if true;   // Filtered client-side / backend by phone or dealerId
+      allow update, delete: if isAdmin();
+    }
+
+    // 3. Service Bookings Collection
+    // Anyone can submit a service booking; Admins manage and update statuses.
+    match /serviceBookings/{bookingId} {
+      allow create: if true;
+      allow read: if true;
+      allow update, delete: if isAdmin();
+    }
+
+    // 4. Dealer Applications Collection
+    // Prospective dealers can submit applications; Only Admins can approve/reject.
+    match /dealers/{dealerId} {
+      allow create: if true;
+      allow read: if true;
+      allow update, delete: if isAdmin();
+    }
+
+    // 5. Customer / User Profiles Collection
+    match /users/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+  }
+}
